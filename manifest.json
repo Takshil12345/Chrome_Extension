@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "LeetCode Helper",
+  "version": "1.0",
+  "description": "Help users keep track of problems solved and maintain a list of favorite problems.",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "tabs",
+    "scripting",
+    "unlimitedStorage"
+  ],
+  "action": {
+    "deafult_icon": "icon128.png",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ],
+  "host_permissions": ["<all_urls>"]
+}
