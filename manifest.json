@@ -11,8 +11,19 @@
     "unlimitedStorage"
   ],
   "action": {
-    "deafult_icon": "icon128.png",
+    "deafult_icon": {
+      "128": "icons/128.png",
+      "48": "icons/48.png",
+      "32": "icons/32.png",
+      "16": "icons/16.png"
+    },
     "default_popup": "popup.html"
+  },
+  "icons": {
+    "128": "icons/128.png",
+    "48": "icons/48.png",
+    "32": "icons/32.png",
+    "16": "icons/16.png"
   },
   "background": {
     "service_worker": "background.js"
