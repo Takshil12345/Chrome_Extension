@@ -1,9 +1,9 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const Problem = require('./Schema/problemSchema.js');
+require('dotenv').config();
 
-const uri =
-  'mongodb+srv://astrorastogi12345:tMXc0AnyUAcKyZaY@cluster0.tg3h2ut.mongodb.net/?retryWrites=true&w=majority';
+const uri = process.env.mongo_uri;
 mongoose
   .connect(uri)
   .then(() => console.log('Connected to MongoDB'))
@@ -59,7 +59,7 @@ app.post('/api/updateProblem', async (req, res) => {
 app.get('/api/getProblems', async (req, res) => {
   try {
     const result = await Problem.find();
-    console.log(result);
+    // console.log(result);
     res.send(result);
   } catch (err) {
     console.log(err);
