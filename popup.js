@@ -70,12 +70,20 @@ async function getProblems() {
 
 function displayProblems(problems) {
   const problemList = document.getElementById('problemList');
-  console.log(problemList);
   problemList.innerHTML = ''; // Clear existing list
 
   problems.forEach((problem, index) => {
     const listItem = document.createElement('li');
-    listItem.className = problem.problemName;
+    listItem.className = 'problem-list-item';
+
+    // Create a container div for the rounded box and dropdown
+    const container = document.createElement('div');
+    container.className = 'container';
+
+    // Create a rounded box for the problem name
+    const roundedBox = document.createElement('div');
+    roundedBox.className = 'rounded-box';
+    roundedBox.textContent = problem.problemName;
 
     // Create an anchor element with the problem name as the text content
     const anchor = document.createElement('a');
@@ -90,6 +98,7 @@ function displayProblems(problems) {
     // Create a dropdown list
     const dropdown = document.createElement('select');
     dropdown.id = `${problem.problemName}`;
+    dropdown.className = 'status-dropdown';
 
     // Add options for each status
     const statusOptions = ['Solved', 'Unsolved', 'Revise'];
@@ -104,9 +113,12 @@ function displayProblems(problems) {
       dropdown.appendChild(option);
     });
 
-    // Append the anchor and toggle button to the list item
-    listItem.appendChild(anchor);
-    listItem.appendChild(dropdown);
+    // Append the rounded box and dropdown to the container
+    container.appendChild(roundedBox);
+    container.appendChild(dropdown);
+
+    // Append the container to the list item
+    listItem.appendChild(container);
 
     // Append the list item to the problemList
     problemList.appendChild(listItem);

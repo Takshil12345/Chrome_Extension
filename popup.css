@@ -1,14 +1,15 @@
 /* popup.css */
 body {
-  display: flex;
+  /* display: flex;
   align-items: center;
-  justify-content: center;
-  height: 100vh;
+  justify-content: center; */
+  height: auto;
   margin: 0;
 }
 
 .container {
   text-align: center;
+  margin-left: 10px;
 }
 
 h1 {
@@ -21,6 +22,10 @@ h1 {
   margin-bottom: 20px;
 }
 
+.list-container ul {
+  max-width: 300px; /* Adjust the max-width as needed */
+  margin: 0 auto; /* Center the list within the container */
+}
 .button {
   padding: 10px 20px;
   font-size: 16px;
@@ -45,4 +50,29 @@ h1 {
 #problemList li {
   margin-bottom: 10px;
   font-size: 14px;
+}
+
+/* Add these styles to your CSS file or within a <style> tag in your HTML */
+.problem-list-item {
+  list-style-type: none;
+  margin-bottom: 10px;
+}
+
+.rounded-box {
+  /* Add max-width for symmetry */
+  max-width: 200px; /* Adjust the max-width as needed */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background-color: #3498db;
+  color: #fff;
+  border-radius: 10px;
+  padding: 5px 10px;
+}
+
+.status-dropdown {
+  padding: 5px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  margin-left: 10px; /* Add some space between the rounded box and dropdown */
 }
