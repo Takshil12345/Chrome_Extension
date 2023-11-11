@@ -12,7 +12,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         request.problemName || prompt('Enter the name of the problem:');
       //console.log(problemName);
       // Add the problem to the list
-      problems.push({ name: problemName });
+      problems.push({ name: problemName, status: solved });
       //console.log(problems);
       // Save the updated list
       chrome.storage.local.set({ problems: problems }, function () {
