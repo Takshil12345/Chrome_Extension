@@ -17,13 +17,13 @@ function displayProblems(problems) {
 
     // Create an anchor element with the problem name as the text content
     const anchor = document.createElement('a');
-    anchor.textContent = problem.problemName;
-
     // Set the href attribute of the anchor element to the LeetCode problem URL
     anchor.href = `https://leetcode.com/problems/${problem.problemName}/`;
 
     // Make the link open in a new tab
     anchor.target = '_blank';
+
+    anchor.appendChild(roundedBox);
 
     // Create a dropdown list
     const dropdown = document.createElement('select');
@@ -44,7 +44,8 @@ function displayProblems(problems) {
     });
 
     // Append the rounded box and dropdown to the container
-    container.appendChild(roundedBox);
+    // container.appendChild(roundedBox);
+    container.appendChild(anchor);
     container.appendChild(dropdown);
 
     // Append the container to the list item
