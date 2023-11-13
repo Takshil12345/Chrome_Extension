@@ -27,6 +27,29 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
   });
 
+  const manageProblemsBtn = document.getElementById('manageProblemsBtn');
+  manageProblemsBtn.addEventListener('click', async (event) => {
+    console.log('Manage Problems Button Clicked');
+    console.log(event.target);
+    const data = await fetch('http://localhost:8000/api/createSpreadSheet');
+
+    console.log('received spread sheet id now updating sheet');
+    const spreadSheetId = await data.json();
+    console.log(spreadSheetId.data.spreadsheetId);
+
+    const result = await fetch('http://localhost:8000/api/updateSheet', {
+      method: 'POST',
+      headers: {
+        'Content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        spreadSheetId: `${spreadSheetId.data.spreadsheetId}`,
+      }),
+    });
+    console.log('DONE');
+    // console.log(result);
+  });
+
   document.getElementById('addProblemBtn').addEventListener('click', () => {
     chrome.tabs.query(
       { active: true, currentWindow: true },

@@ -94,12 +94,72 @@ app.get('/callback', (req, res) => {
       throw err;
     }
     client.credentials = tokens;
-    console.log(client.credentials);
+    // console.log(client.credentials);
     console.log('DONE WITH AUTHENTICATION');
-    res.send('Authentication successful! Please return to the console.');
-    // server.close();
-    // listMajors(client);
+    res.send('Authentication successful!');
   });
+});
+
+app.get('/api/createSpreadSheet', async (req, res) => {
+  const service = google.sheets({ version: 'v4' });
+  const resource = {
+    properties: {
+      title: 'LeetCode Problems',
+    },
+  };
+
+  try {
+    const spreadsheet = await service.spreadsheets.create({
+      auth: client,
+      resource,
+      fields: 'spreadsheetId',
+    });
+    console.log(`Spreadsheet ID: ${spreadsheet.data.spreadsheetId}`);
+    res.send(spreadsheet);
+  } catch (err) {
+    console.log('ERR : ' + err);
+    throw err;
+  }
+});
+
+app.post('/api/updateSheet', async (req, res) => {
+  const { spreadSheetId } = req.body;
+  console.log(spreadSheetId);
+  const service = google.sheets({ version: 'v4' });
+  const result = await Problem.find().lean().exec();
+  console.log(result);
+  const values = [['Problem Name', 'Problem Link', 'Problem Status']];
+  // const problems = await result.json();
+
+  for (entry of result) {
+    const value = [];
+
+    value.push(entry.problemName);
+    value.push(entry.problemLink);
+    value.push(entry.problemStatus);
+
+    values.push(value);
+  }
+
+  console.log(values);
+
+  const resource = {
+    values,
+  };
+  try {
+    const result = await service.spreadsheets.values.update({
+      auth: client,
+      spreadsheetId: `${spreadSheetId}`,
+      range: 'Sheet1',
+      valueInputOption: 'RAW',
+      resource,
+    });
+    console.log('%d cells updated.', result.data.updatedCells);
+    res.send(result);
+  } catch (err) {
+    // TODO (Developer) - Handle exception
+    throw err;
+  }
 });
 
 app.listen(8000, () => {

@@ -1,4 +1,4 @@
-function displayProblems(problems) {
+function displayProblems(problems, present) {
   const problemList = document.getElementById('problemList');
   problemList.innerHTML = ''; // Clear existing list
 
@@ -43,15 +43,11 @@ function displayProblems(problems) {
       dropdown.appendChild(option);
     });
 
-    // Append the rounded box and dropdown to the container
-    // container.appendChild(roundedBox);
     container.appendChild(anchor);
     container.appendChild(dropdown);
 
-    // Append the container to the list item
     listItem.appendChild(container);
 
-    // Append the list item to the problemList
     problemList.appendChild(listItem);
   });
 }

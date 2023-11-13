@@ -76,3 +76,12 @@ h1 {
   border: 1px solid #ccc;
   margin-left: 10px; /* Add some space between the rounded box and dropdown */
 }
+
+.excel-button {
+  text-align: left;
+}
+
+#excelButton {
+  margin-left: 130px;
+  margin-bottom: 5px;
+}
