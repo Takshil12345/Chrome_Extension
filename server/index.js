@@ -1,7 +1,26 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const Problem = require('./Schema/problemSchema.js');
+const path = require('path');
+const open = require('open');
+const fs = require('fs');
+const { google } = require('googleapis');
 require('dotenv').config();
+
+const keyfile = path.join(__dirname, 'credentials.json');
+const keys = JSON.parse(fs.readFileSync(keyfile));
+const scopes = ['https://www.googleapis.com/auth/spreadsheets'];
+
+const client = new google.auth.OAuth2(
+  keys.web.client_id,
+  keys.web.client_secret,
+  keys.web.redirect_uris[0]
+);
+
+const authorizeUrl = client.generateAuthUrl({
+  access_type: 'offline',
+  scope: scopes,
+});
 
 const uri = process.env.mongo_uri;
 mongoose
@@ -67,6 +86,23 @@ app.get('/api/getProblems', async (req, res) => {
   }
 });
 
+app.get('/callback', (req, res) => {
+  const code = req.query.code;
+  client.getToken(code, (err, tokens) => {
+    if (err) {
+      console.error('Error getting oAuth tokens:');
+      throw err;
+    }
+    client.credentials = tokens;
+    console.log(client.credentials);
+    console.log('DONE WITH AUTHENTICATION');
+    res.send('Authentication successful! Please return to the console.');
+    // server.close();
+    // listMajors(client);
+  });
+});
+
 app.listen(8000, () => {
   console.log('Server is running on port 8000');
+  open(authorizeUrl);
 });
