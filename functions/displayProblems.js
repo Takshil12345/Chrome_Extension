@@ -1,6 +1,6 @@
 function displayProblems(problems, present) {
   const problemList = document.getElementById('problemList');
-  problemList.innerHTML = ''; // Clear existing list
+  problemList.innerHTML = '';
 
   problems.forEach((problem, index) => {
     const listItem = document.createElement('li');
