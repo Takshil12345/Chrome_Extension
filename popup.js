@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     console.log('received spread sheet id now updating sheet');
     const spreadSheetId = await data.json();
-    console.log(spreadSheetId.data.spreadsheetId);
+    console.log(spreadSheetId.spreadsheetId);
 
     const result = await fetch('http://localhost:8000/api/updateSheet', {
       method: 'POST',
@@ -43,11 +43,11 @@ document.addEventListener('DOMContentLoaded', async function () {
         'Content-type': 'application/json',
       },
       body: JSON.stringify({
-        spreadSheetId: `${spreadSheetId.data.spreadsheetId}`,
+        spreadSheetId: `${spreadSheetId.spreadsheetId}`,
       }),
     });
     console.log('DONE');
-    // console.log(result);
+    console.log(result);
   });
 
   document.getElementById('addProblemBtn').addEventListener('click', () => {
