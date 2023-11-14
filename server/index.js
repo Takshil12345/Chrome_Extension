@@ -109,13 +109,29 @@ app.get('/api/createSpreadSheet', async (req, res) => {
   };
 
   try {
-    const spreadsheet = await service.spreadsheets.create({
-      auth: client,
-      resource,
-      fields: 'spreadsheetId',
-    });
-    console.log(`Spreadsheet ID: ${spreadsheet.data.spreadsheetId}`);
-    res.send(spreadsheet);
+    if (keys.web.hasOwnProperty('spreadsheetId')) {
+      console.log('Spread Sheet Id already exists');
+      res.send(keys.web);
+    } else {
+      const spreadsheet = await service.spreadsheets.create({
+        auth: client,
+        resource,
+        fields: 'spreadsheetId',
+      });
+      console.log(`Spreadsheet ID: ${spreadsheet.data.spreadsheetId}`);
+
+      console.log('Starting to read file');
+
+      keys.web.spreadsheetId = spreadsheet.data.spreadsheetId;
+      fs.writeFileSync(keyfile, JSON.stringify(keys), (err) => {
+        if (err) throw err;
+        console.log('Spread Sheet Id was appended to the json file');
+      });
+
+      console.log('Done reading file');
+
+      res.send(spreadsheet.data);
+    }
   } catch (err) {
     console.log('ERR : ' + err);
     throw err;
@@ -141,7 +157,7 @@ app.post('/api/updateSheet', async (req, res) => {
     values.push(value);
   }
 
-  console.log(values);
+  console.log(values.length);
 
   const resource = {
     values,
