@@ -31,6 +31,12 @@ document.addEventListener('DOMContentLoaded', async function () {
   manageProblemsBtn.addEventListener('click', async (event) => {
     console.log('Manage Problems Button Clicked');
     console.log(event.target);
+    const message = await fetch('http://localhost:8000/api/authenticate');
+    const authorizeUrl = await message.json();
+    console.log(authorizeUrl.url);
+    if (authorizeUrl.message == 'NOT DONE') {
+      window.open(authorizeUrl.url, '_blank');
+    }
     const data = await fetch('http://localhost:8000/api/createSpreadSheet');
 
     console.log('received spread sheet id now updating sheet');

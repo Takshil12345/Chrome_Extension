@@ -86,6 +86,19 @@ app.get('/api/getProblems', async (req, res) => {
   }
 });
 
+app.get('/api/authenticate', (req, res) => {
+  console.log('AUTHENTICATING Starting ');
+
+  if (Object.keys(client.credentials).length !== 0) {
+    console.log(client);
+    console.log(client.credentials);
+    console.log('Already Authenticated');
+    res.send({ message: 'DONE' });
+  } else {
+    res.send({ url: `${authorizeUrl}`, message: 'NOT DONE' });
+  }
+});
+
 app.get('/callback', (req, res) => {
   const code = req.query.code;
   client.getToken(code, (err, tokens) => {
@@ -94,9 +107,10 @@ app.get('/callback', (req, res) => {
       throw err;
     }
     client.credentials = tokens;
+    console.log(client);
     // console.log(client.credentials);
     console.log('DONE WITH AUTHENTICATION');
-    res.send('Authentication successful!');
+    res.send({ message: 'DONE' });
   });
 });
 
@@ -180,5 +194,5 @@ app.post('/api/updateSheet', async (req, res) => {
 
 app.listen(8000, () => {
   console.log('Server is running on port 8000');
-  open(authorizeUrl);
+  // open(authorizeUrl);
 });
