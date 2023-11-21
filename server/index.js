@@ -1,15 +1,23 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const Problem = require('./Schema/problemSchema.js');
+const User = require('./Schema/userSchema.js');
+// const User = require('./Schema/userSchema.js');
 const path = require('path');
 const open = require('open');
 const fs = require('fs');
 const { google } = require('googleapis');
 require('dotenv').config();
 
+const people = google.people('v1');
+
 const keyfile = path.join(__dirname, 'credentials.json');
 const keys = JSON.parse(fs.readFileSync(keyfile));
-const scopes = ['https://www.googleapis.com/auth/spreadsheets'];
+const scopes = [
+  'https://www.googleapis.com/auth/spreadsheets',
+  'https://www.googleapis.com/auth/userinfo.profile',
+  'https://www.googleapis.com/auth/userinfo.email',
+];
 
 const client = new google.auth.OAuth2(
   keys.web.client_id,
@@ -34,22 +42,61 @@ app.use(express.json());
 app.post('/api/addProblem', async (req, res) => {
   try {
     const { problemName, problemLink, problemStatus } = req.body;
-    // console.log(problemName, problemLink, problemStatus);
-    const existingProblem = await Problem.findOne({ problemName });
 
-    if (existingProblem) {
-      // console.log('Problem already exists');
-      return res.send('Problem already exists');
-    } else {
-      const problem = new Problem({
-        problemName,
-        problemLink,
-        problemStatus,
+    const result = await people.people.get({
+      auth: client,
+      resourceName: 'people/me',
+      personFields: 'emailAddresses,names',
+    });
+    console.log(result.data.emailAddresses[0].value);
+
+    const existingUser = await User.findOne({
+      name: result.data.emailAddresses[0].value,
+    });
+
+    if (!existingUser) {
+      const user = new User({
+        name: result.data.emailAddresses[0].value,
       });
-      await problem.save();
-      // console.log('Added Problem');
-      res.send('Added Problem');
+
+      user.problems.push({ problemName, problemLink, problemStatus });
+      await user.save();
+
+      console.log('Added User');
+      console.log(user);
+    } else {
+      const user = await User.findOne({
+        name: result.data.emailAddresses[0].value,
+      });
+
+      for (let i = 0; i < user.problems.length; i++) {
+        if (user.problems[i].problemName === problemName) {
+          return res.send('Problem already exists');
+        }
+      }
+
+      user.problems.push({ problemName, problemLink, problemStatus });
+      await user.save();
     }
+    console.log('Added Problem');
+    res.send('Added Problem');
+    // console.log(problemName, problemLink, problemStatus);
+    // const existingProblem = await Problem.findOne({ problemName });
+    // console.log(existingProblem.problemLink);
+
+    // if (existingProblem) {
+    //   // console.log('Problem already exists');
+    //   return res.send('Problem already exists');
+    // } else {
+    //   const problem = new Problem({
+    //     problemName,
+    //     problemLink,
+    //     problemStatus,
+    //   });
+    //   await problem.save();
+    //   // console.log('Added Problem');
+    //   res.send('Added Problem');
+    // }
   } catch (err) {
     console.log(err);
     res.send('Error ' + err);
@@ -60,12 +107,30 @@ app.post('/api/updateProblem', async (req, res) => {
   try {
     const { problemName, probleStatus } = req.body;
 
-    const filter = { problemName: problemName };
-    const update = { problemStatus: probleStatus };
+    // const filter = { problemName: problemName };
+    // const update = { problemStatus: probleStatus };
 
-    const newProblem = await Problem.findOneAndUpdate(filter, update, {
-      new: true,
+    const result = await people.people.get({
+      auth: client,
+      resourceName: 'people/me',
+      personFields: 'emailAddresses,names',
     });
+    console.log(result.data.emailAddresses[0].value);
+
+    // const newProblem = await Problem.findOneAndUpdate(filter, update, {
+    //   new: true,
+    // });
+    const user = await User.findOne({
+      name: result.data.emailAddresses[0].value,
+    });
+
+    for (let i = 0; i < user.problems.length; i++) {
+      if (user.problems[i].problemName === problemName) {
+        user.problems[i].problemStatus = probleStatus;
+        await user.save();
+        break;
+      }
+    }
 
     // console.log(newProblem);
     res.send('Updated Problem');
@@ -77,8 +142,19 @@ app.post('/api/updateProblem', async (req, res) => {
 
 app.get('/api/getProblems', async (req, res) => {
   try {
-    const result = await Problem.find();
+    // const result = await Problem.find();
     // console.log(result);
+    const user = await people.people.get({
+      auth: client,
+      resourceName: 'people/me',
+      personFields: 'emailAddresses,names',
+    });
+
+    const existingUser = await User.findOne({
+      name: user.data.emailAddresses[0].value,
+    });
+    const result = existingUser.problems;
+
     res.send(result);
   } catch (err) {
     console.log(err);
@@ -99,18 +175,32 @@ app.get('/api/authenticate', (req, res) => {
   }
 });
 
-app.get('/callback', (req, res) => {
+app.get('/callback', async (req, res) => {
   const code = req.query.code;
-  client.getToken(code, (err, tokens) => {
+  client.getToken(code, async (err, tokens) => {
     if (err) {
       console.error('Error getting oAuth tokens:');
       throw err;
     }
     client.credentials = tokens;
-    console.log(client);
+    // console.log(client);
     // console.log(client.credentials);
-    console.log('DONE WITH AUTHENTICATION');
-    res.send({ message: 'DONE' });
+    try {
+      const result = await people.people.get({
+        auth: client,
+        resourceName: 'people/me',
+        personFields: 'emailAddresses,names',
+      });
+      console.log(result.data.emailAddresses[0].value);
+      console.log('DONE WITH AUTHENTICATION');
+
+      res.send({
+        message: 'DONE',
+      });
+    } catch (err) {
+      console.log(err);
+      throw err;
+    }
   });
 });
 
@@ -142,7 +232,7 @@ app.get('/api/createSpreadSheet', async (req, res) => {
         console.log('Spread Sheet Id was appended to the json file');
       });
 
-      console.log('Done reading file');
+      console.log('Done updating the file');
 
       res.send(spreadsheet.data);
     }
@@ -156,6 +246,7 @@ app.post('/api/updateSheet', async (req, res) => {
   const { spreadSheetId } = req.body;
   console.log(spreadSheetId);
   const service = google.sheets({ version: 'v4' });
+
   const result = await Problem.find().lean().exec();
   console.log(result);
   const values = [['Problem Name', 'Problem Link', 'Problem Status']];

@@ -1,9 +1,10 @@
 // popup.js
 import getProblems from './functions/getProblems.js';
 import extractProblemNameFromUrl from './functions/extractProblemNameFromUrl.js';
+// import { get } from 'http';
 
 document.addEventListener('DOMContentLoaded', async function () {
-  await getProblems();
+  await checkAuthentication();
 
   const problemList = document.getElementById('problemList');
   problemList.addEventListener('change', async (event) => {
@@ -34,6 +35,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     const message = await fetch('http://localhost:8000/api/authenticate');
     const authorizeUrl = await message.json();
     console.log(authorizeUrl.url);
+    let clientUri = null;
     if (authorizeUrl.message == 'NOT DONE') {
       window.open(authorizeUrl.url, '_blank');
     }
@@ -56,38 +58,60 @@ document.addEventListener('DOMContentLoaded', async function () {
     console.log(result);
   });
 
-  document.getElementById('addProblemBtn').addEventListener('click', () => {
-    chrome.tabs.query(
-      { active: true, currentWindow: true },
-      async function (tabs) {
-        const currentUrl = tabs[0].url;
-        if (
-          currentUrl.startsWith('https://leetcode.com/problems/') &&
-          currentUrl.split('/')[currentUrl.split('/').length - 1] !== 'all'
-        ) {
-          const url = tabs[0].url;
-          console.log(url);
-          const problemName = await extractProblemNameFromUrl(url);
-          console.log(problemName);
+  document
+    .getElementById('addProblemBtn')
+    .addEventListener('click', async () => {
+      chrome.tabs.query(
+        { active: true, currentWindow: true },
+        async function (tabs) {
+          const currentUrl = tabs[0].url;
+          if (
+            currentUrl.startsWith('https://leetcode.com/problems/') &&
+            currentUrl.split('/')[currentUrl.split('/').length - 1] !== 'all'
+          ) {
+            const url = tabs[0].url;
+            console.log(url);
+            const problemName = await extractProblemNameFromUrl(url);
+            console.log(problemName);
 
-          const result = await fetch('http://localhost:8000/api/addProblem', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              problemName: `${problemName}`,
-              problemLink: `${url}`,
-              problemStatus: 'Solved',
-            }),
-          });
+            const result = await fetch('http://localhost:8000/api/addProblem', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                problemName: `${problemName}`,
+                problemLink: `${url}`,
+                problemStatus: 'Solved',
+              }),
+            });
 
-          console.log('Response Received');
-          let problems = [{ name: `${problemName}`, status: 'Solved' }];
+            console.log('Response Received');
+            let problems = [{ name: `${problemName}`, status: 'Solved' }];
 
-          await getProblems();
+            await getProblems();
+          }
         }
-      }
-    );
+      );
+    });
+
+  document.getElementById('gbutton').addEventListener('click', async () => {
+    console.log('Starting Authentication in add problem');
+    const message = await fetch('http://localhost:8000/api/authenticate');
+    const authorizeUrl = await message.json();
+    console.log(authorizeUrl.url);
+    if (authorizeUrl.message == 'NOT DONE') {
+      window.open(authorizeUrl.url, '_blank');
+    }
+    console.log('Starting to get Problems');
+    await getProblems();
+    console.log('Done getting problems');
   });
 });
+
+const checkAuthentication = async () => {
+  console.log('Checking Authentication');
+  const message = await fetch('http://localhost:8000/api/authenticate');
+  const authorizeUrl = await message.json();
+  if (authorizeUrl.message == 'DONE') await getProblems();
+};
