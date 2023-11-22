@@ -103,9 +103,9 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (authorizeUrl.message == 'NOT DONE') {
       window.open(authorizeUrl.url, '_blank');
     }
-    console.log('Starting to get Problems');
-    await getProblems();
-    console.log('Done getting problems');
+    // console.log('Starting to get Problems');
+    // await getProblems();
+    // console.log('Done getting problems');
   });
 });
 

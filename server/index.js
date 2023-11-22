@@ -247,7 +247,16 @@ app.post('/api/updateSheet', async (req, res) => {
   console.log(spreadSheetId);
   const service = google.sheets({ version: 'v4' });
 
-  const result = await Problem.find().lean().exec();
+  const user = await people.people.get({
+    auth: client,
+    resourceName: 'people/me',
+    personFields: 'emailAddresses,names',
+  });
+
+  const existingUser = await User.findOne({
+    name: user.data.emailAddresses[0].value,
+  });
+  const result = existingUser.problems;
   console.log(result);
   const values = [['Problem Name', 'Problem Link', 'Problem Status']];
   // const problems = await result.json();
