@@ -2,12 +2,12 @@ const express = require('express');
 const mongoose = require('mongoose');
 const Problem = require('./Schema/problemSchema.js');
 const User = require('./Schema/userSchema.js');
-// const User = require('./Schema/userSchema.js');
 const path = require('path');
 const open = require('open');
 const fs = require('fs');
 const { google } = require('googleapis');
 require('dotenv').config();
+const cryptoRandomString = require('crypto-random-string');
 
 const people = google.people('v1');
 
@@ -18,6 +18,8 @@ const scopes = [
   'https://www.googleapis.com/auth/userinfo.profile',
   'https://www.googleapis.com/auth/userinfo.email',
 ];
+
+const clientTracker = {};
 
 const client = new google.auth.OAuth2(
   keys.web.client_id,
@@ -80,23 +82,6 @@ app.post('/api/addProblem', async (req, res) => {
     }
     console.log('Added Problem');
     res.send('Added Problem');
-    // console.log(problemName, problemLink, problemStatus);
-    // const existingProblem = await Problem.findOne({ problemName });
-    // console.log(existingProblem.problemLink);
-
-    // if (existingProblem) {
-    //   // console.log('Problem already exists');
-    //   return res.send('Problem already exists');
-    // } else {
-    //   const problem = new Problem({
-    //     problemName,
-    //     problemLink,
-    //     problemStatus,
-    //   });
-    //   await problem.save();
-    //   // console.log('Added Problem');
-    //   res.send('Added Problem');
-    // }
   } catch (err) {
     console.log(err);
     res.send('Error ' + err);
@@ -182,12 +167,17 @@ app.get('/callback', async (req, res) => {
       console.error('Error getting oAuth tokens:');
       throw err;
     }
+    const userName = cryptoRandomString({ length: 10, type: 'url-safe' });
+    let clientCopy = client;
+    clientCopy.credentials = tokens;
+    clientTracker[userName] = clientCopy;
     client.credentials = tokens;
     // console.log(client);
     // console.log(client.credentials);
+
     try {
       const result = await people.people.get({
-        auth: client,
+        auth: clientTracker[userName],
         resourceName: 'people/me',
         personFields: 'emailAddresses,names',
       });
@@ -196,6 +186,7 @@ app.get('/callback', async (req, res) => {
 
       res.send({
         message: 'DONE',
+        userName: `${userName}`,
       });
     } catch (err) {
       console.log(err);
